@@ -68,16 +68,11 @@ func Pisi() {
 				continue
 			}
 
-			fmt.Printf("podatak: %v\n", podatak)
-			fmt.Printf("podatak.Pm25: %v\n", podatak.Pm25)
-
 			jsonStr, err := json.Marshal(podatak)
 			if err != nil {
 				log.Printf("[fajl: %v]: json.Marshal() greška: %v\n", putanja, err)
 				continue
 			}
-
-			fmt.Printf("jsonStr: %s\n", string(jsonStr))
 
 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 			if err != nil {

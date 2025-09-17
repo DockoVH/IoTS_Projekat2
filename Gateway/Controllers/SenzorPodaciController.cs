@@ -82,8 +82,6 @@ public class SenzorPodaciController : ControllerBase
 	public async Task<IActionResult>DodajSenzorPodatak([FromBody] Gateway.GrpcClient.SenzorPodatak podatak)
 	{
 		Console.WriteLine("Dodavanje novog podatka.");
-
-		Console.WriteLine("podatak.Pm25" + podatak.Pm25);
 		try
 		{
 			await client.DodajSenzorPodatakAsync(podatak, cancellationToken: cancellationToken);

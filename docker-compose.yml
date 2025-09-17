@@ -57,6 +57,13 @@ services:
       - ./mosquitto:/mosquitto/config
     networks:
       - mreza
+  eventmanager:
+    container_name: iots2_event_manager
+    build: ./EventManager
+    depends_on:
+      - mqtt
+    networks:
+      - mreza
 
 networks:
   mreza:

@@ -165,8 +165,6 @@ func (s *server) DodajSenzorPodatak(ctx context.Context, sp *senzorPodaci.Senzor
 	}
 	defer conn.Close(ctx)
 
-	//trenutnoVreme := time.Now()
-
 	var (
 		id int
 		vreme time.Time

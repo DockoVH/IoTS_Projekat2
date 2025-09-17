@@ -8,7 +8,7 @@ import (
 )
 
 var messagePubHandler emqx.MessageHandler = func(client emqx.Client, msg emqx.Message) {
-	log.Printf("Primljena poruka: %v sa topic-a: %s\n", msg.Payload(), msg.Topic())
+	log.Printf("Primljena poruka: %s sa topic-a: %s\n", msg.Payload(), msg.Topic())
 }
 
 func NoviKlijent() emqx.Client {
