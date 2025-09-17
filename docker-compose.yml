@@ -1,6 +1,6 @@
 services:
   db:
-    container_name: iots_postgres
+    container_name: iots2_postgres
     image: postgres
     environment:
       POSTGRES_USER: root
@@ -20,7 +20,7 @@ services:
       retries: 5
 
   datamanager:
-    container_name: iots_data_manager
+    container_name: iots2_data_manager
     build: ./DataManager
     depends_on:
       db:
@@ -31,7 +31,7 @@ services:
       - 5050:5050
 
   gateway:
-    container_name: iots_gateway
+    container_name: iots2_gateway
     build: ./Gateway
     depends_on:
       - datamanager
@@ -41,10 +41,20 @@ services:
       - 8080:8080
 
   sensorgenerator:
-    container_name: iots_sensor_generator
+    container_name: iots2_sensor_generator
     build: ./SensorGenerator
     depends_on:
       - gateway
+    networks:
+      - mreza
+  mqtt:
+    container_name: iots2_mqtt
+    image: eclipse-mosquitto
+    ports:
+      - 1883:1883
+      - 9001:9001
+    volumes:
+      - ./mosquitto:/mosquitto/config
     networks:
       - mreza
 

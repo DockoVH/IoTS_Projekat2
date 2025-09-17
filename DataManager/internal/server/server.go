@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"encoding/json"
 
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
@@ -19,6 +20,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"DataManager/internal/senzorPodaci"
+	"DataManager/internal/mqtt"
 )
 
 type server struct {
@@ -154,6 +156,8 @@ func (s *server) SviSenzorPodaci(_ *emptypb.Empty, stream grpc.ServerStreamingSe
 func (s *server) DodajSenzorPodatak(ctx context.Context, sp *senzorPodaci.SenzorPodatak) (*wrapperspb.BoolValue, error) {
 	log.Print("Dodavanje novog podatka.")
 
+	fmt.Printf("sp.Pm2_5: %v\n", sp.Pm2_5)
+
 	conn, err := pgx.Connect(ctx, pgConnString())
 	if (err != nil) {
 		log.Print("DodajSenzorPodatak(): Greška prilikom konektovanja sa bazom: ", err)
@@ -161,12 +165,61 @@ func (s *server) DodajSenzorPodatak(ctx context.Context, sp *senzorPodaci.Senzor
 	}
 	defer conn.Close(ctx)
 
-	if _, err := conn.Exec(ctx, "INSERT INTO senzor_podaci (temperatura, vlaznost_vazduha, pm2_5, pm10) VALUES ($1, $2, $3, $4)", sp.Temperatura, sp.VlaznostVazduha, sp.Pm2_5, sp.Pm10); err != nil {
+	//trenutnoVreme := time.Now()
+
+	var (
+		id int
+		vreme time.Time
+	)
+
+	query := "INSERT INTO senzor_podaci (temperatura, vlaznost_vazduha, pm2_5, pm10) "
+	query += "VALUES ($1, $2, $3, $4) RETURNING id, vreme"
+
+	if err := conn.QueryRow(ctx, query , sp.Temperatura, sp.VlaznostVazduha, sp.Pm2_5, sp.Pm10).Scan(&id, &vreme); err != nil {
 		log.Print("DodajSenzorPodatak(): Greška prilikom dodavanja podatka u bazu: ", err)
 		return wrapperspb.Bool(false), status.Error(status.Code(err), err.Error())
 	}
 
-	log.Print("Novi podatak uspešno dodat.")
+	log.Printf("Uspešno dodat podatak sa ID: %v\n", id)
+
+	klijent := mqtt.NoviKlijent()
+	if klijent != nil {
+		tokenSub := klijent.Subscribe("topic/NoviPodaci", 1, nil)
+		<- tokenSub.Done()
+		if tokenSub.Error() != nil {
+			log.Print("DodajSenzorPodatak(): klijent.Subscribe(topic/NoviPodaci) greška: ", tokenSub.Error())
+		}
+
+		podatak := struct {
+			Id int
+			Vreme time.Time
+			Temperatura float32
+			Vlaznost float32
+			Pm2_5 float32
+			Pm10 float32
+		}{
+			Id: id,
+			Vreme: vreme,
+			Temperatura: sp.Temperatura,
+			Vlaznost: sp.VlaznostVazduha,
+			Pm2_5: sp.Pm2_5,
+			Pm10: sp.Pm10,
+		}
+
+		jsonStr, err := json.Marshal(podatak)
+		if err != nil {
+			log.Print("DodajSenzorPodatak(): json.Marshal(podatak) greška: ", err)
+		}
+
+		tokenPub := klijent.Publish("topic/NoviPodaci", 0, false, jsonStr)
+		go func() {
+			<- tokenPub.Done()
+			if tokenPub.Error() != nil {
+				log.Print("DodajSenzorPodatak(): klijent.Publish(topic/NoviPodaci) greška: ", tokenPub.Error())
+			}
+		}()
+	}
+
 	return wrapperspb.Bool(true), nil
 }
 
@@ -221,7 +274,7 @@ func (s *server) IzbrisiSenzorPodatak(ctx context.Context, id *wrapperspb.Int32V
 }
 
 func (s *server) SviSenzorPodaciPeriod(vp *senzorPodaci.VremenskiPeriod, stream grpc.ServerStreamingServer[senzorPodaci.SenzorPodatak]) error {
-	log.Printf("Pribavljanje svih podatka u periodu izmedju %v i %v.", vp.Pocetak.AsTime(), vp.Kraj.AsTime())
+	log.Printf("Pribavljanje svih podatka u periodu izmedju %v i %v.\n", vp.Pocetak.AsTime(), vp.Kraj.AsTime())
 
 	ctx := context.Background()
 

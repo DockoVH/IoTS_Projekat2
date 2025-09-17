@@ -19,7 +19,7 @@ import (
 type senzorPodatak struct {
 	Temperatura float64
 	VlaznostVazduha float64
-	Pm2_5 float64
+	Pm25 float64
 	Pm10 float64
 }
 
@@ -68,11 +68,16 @@ func Pisi() {
 				continue
 			}
 
+			fmt.Printf("podatak: %v\n", podatak)
+			fmt.Printf("podatak.Pm25: %v\n", podatak.Pm25)
+
 			jsonStr, err := json.Marshal(podatak)
 			if err != nil {
 				log.Printf("[fajl: %v]: json.Marshal() greška: %v\n", putanja, err)
 				continue
 			}
+
+			fmt.Printf("jsonStr: %s\n", string(jsonStr))
 
 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 			if err != nil {
@@ -113,7 +118,7 @@ func Pisi() {
 	log.Print("Nema više podataka.")
 }
 
-func parseRed(red string, brFajla int) *senzorPodatak{
+func parseRed(red string, brFajla int) *senzorPodatak {
 	podaci := strings.Split(red, ",")
 	for i := range podaci {
 		podaci[i] = strings.ReplaceAll(podaci[i], " ", "" )
@@ -178,7 +183,7 @@ func parseRed(red string, brFajla int) *senzorPodatak{
 
 	podatak.Temperatura = temp
 	podatak.VlaznostVazduha = vlaznost
-	podatak.Pm2_5 = pm25
+	podatak.Pm25 = pm25
 	podatak.Pm10 = pm10
 
 	return &podatak
