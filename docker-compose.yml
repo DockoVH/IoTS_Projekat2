@@ -64,6 +64,15 @@ services:
       - mqtt
     networks:
       - mreza
+  mqttclient:
+    container_name: iots2_mqtt_client
+    build: ./MqttClient
+    depends_on:
+      - mqtt
+    networks:
+      - mreza
+    ports:
+      - 8085:8085
 
 networks:
   mreza:

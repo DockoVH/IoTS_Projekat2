@@ -12,20 +12,20 @@ type senzorPodatak struct {
 	Id int32
 	Vreme time.Time
 	Temperatura float32
-	VlaznostVazduha float32
+	Vlaznost float32
 	Pm2_5 float32
 	Pm10 float32
 }
 
 const (
-	TemperaturaGranica float32 = 70.0
+	TemperaturaGranica float32 = 700.0
 	VlaznostVazduhaGranica float32 = 80.0
-	Pm2_5Granica float32 = 100.0
-	Pm10Granica float32 = 120.0
+	Pm2_5Granica float32 = 10.0
+	Pm10Granica float32 = 12.0
 )
 
 var messagePubHandler emqx.MessageHandler = func(client emqx.Client, msg emqx.Message) {
-	log.Printf("Primljena poruka: %v sa topic-a: %s\n", msg.Payload(), msg.Topic())
+	log.Printf("Primljena poruka: %v sa topic-a: %s\n", string(msg.Payload()), msg.Topic())
 
 	if msg.Topic() != "topic/NoviPodaci" {
 		return
@@ -38,7 +38,10 @@ var messagePubHandler emqx.MessageHandler = func(client emqx.Client, msg emqx.Me
 		return
 	}
 
+	log.Printf("handler podatak: %v", podatak)
+
 	if podatak.Temperatura > TemperaturaGranica {
+		log.Print("slanje podatka na topic/IznadGranice/Temperatura")
 		token := client.Publish("topic/IznadGranice/Temperatura", 0, false, msg.Payload())
 		go func() {
 			<- token.Done()
@@ -47,7 +50,7 @@ var messagePubHandler emqx.MessageHandler = func(client emqx.Client, msg emqx.Me
 			}
 		}()
 	}
-	if podatak.VlaznostVazduha > VlaznostVazduhaGranica {
+	if podatak.Vlaznost > VlaznostVazduhaGranica {
 		token := client.Publish("topic/IznadGranice/VlaznostVazduha", 0, false, msg.Payload())
 		go func() {
 			<- token.Done()
