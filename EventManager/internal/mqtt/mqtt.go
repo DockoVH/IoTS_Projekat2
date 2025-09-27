@@ -18,10 +18,10 @@ type senzorPodatak struct {
 }
 
 const (
-	TemperaturaGranica float32 = 700.0
+	TemperaturaGranica float32 = 60.0
 	VlaznostVazduhaGranica float32 = 80.0
-	Pm2_5Granica float32 = 10.0
-	Pm10Granica float32 = 12.0
+	Pm2_5Granica float32 = 55.0
+	Pm10Granica float32 = 253.0
 )
 
 var messagePubHandler emqx.MessageHandler = func(client emqx.Client, msg emqx.Message) {
