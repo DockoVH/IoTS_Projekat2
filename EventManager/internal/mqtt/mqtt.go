@@ -18,10 +18,10 @@ type senzorPodatak struct {
 }
 
 const (
-	TemperaturaGranica float32 = 60.0
-	VlaznostVazduhaGranica float32 = 80.0
-	Pm2_5Granica float32 = 55.0
-	Pm10Granica float32 = 253.0
+	TemperaturaGranica float32 = 28.0 //60.0
+	VlaznostVazduhaGranica float32 = 60.0 //80.0
+	Pm2_5Granica float32 = 5.0 //55.0
+	Pm10Granica float32 = 10.0 //253.0
 )
 
 var messagePubHandler emqx.MessageHandler = func(client emqx.Client, msg emqx.Message) {
@@ -37,8 +37,6 @@ var messagePubHandler emqx.MessageHandler = func(client emqx.Client, msg emqx.Me
 		log.Print("json.Unmarshal(): greška: ", err)
 		return
 	}
-
-	log.Printf("handler podatak: %v", podatak)
 
 	if podatak.Temperatura > TemperaturaGranica {
 		log.Print("slanje podatka na topic/IznadGranice/Temperatura")
