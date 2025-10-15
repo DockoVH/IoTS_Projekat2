@@ -1,0 +1,49 @@
+asyncapi: 2.6.0
+info:
+  title: DataManager
+  version: 1.0.0
+  description: AsyncAPI specifikacija za MQTT komunikaciju DataManager servisa.
+servers:
+  mqttBroker:
+    url: mqtt:1883
+    protocol: mqtt
+    name: Local MQTT Broker
+    description: MQTT broker unutar Docker mreže.
+channels:
+  topic/NoviPodaci:
+    description: Topic na koji se publikuju i subscribuju novi senzorski podaci.
+    publish:
+      summary: Publikuje novi senzor podatak
+      operationId: publishNoviPodaci
+      message:
+        name: NoviPodaciMessage
+        title: NoviPodaci
+        summary: Notifikacija o novom senzorskom zapisu
+        contentType: application/json
+        payload:
+          type: object
+          properties:
+            Id:
+              type: integer
+              format: int32
+            Vreme:
+              type: string
+              format: date-time
+            Temperatura:
+              type: number
+              format: float
+            Vlaznost:
+              type: number
+              format: float
+            Pm2_5:
+              type: number
+              format: float
+            Pm10:
+              type: number
+              format: float
+    subscribe:
+      summary: Subscribuje se na nove podatke
+      operationId: subscribeNoviPodaci
+      message:
+        name: NoviPodaciMessage
+        contentType: application/json

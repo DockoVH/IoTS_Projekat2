@@ -1,0 +1,130 @@
+asyncapi: 2.6.0
+info:
+  title: EventManager - MQTT events
+  version: 1.0.0
+  description: AsyncAPI specifikacija za EventManager servis.
+servers:
+  mqttBroker:
+    url: mqtt:1883
+    protocol: mqtt
+    name: Local MQTT Broker
+    description: MQTT broker unutar Docker mreže.
+channels:
+  topic/NoviPodaci:
+    description: Topic na koji DataManager šalje nove podatke.
+    subscribe:
+      summary: Prijem novih senzorskih podataka.
+      operationId: subscribeNoviPodaci
+      message:
+        $ref: '#/components/messages/SenzorPodatakMessage'
+      bindings:
+        mqtt:
+          qos: 2
+
+  topic/IznadGranice/Temperatura:
+    description: Objavljuje se ako je temperatura iznad granice.
+    publish:
+      summary: Notifikacija da je temperatura iznad granice.
+      operationId: publishIznadGraniceTemperatura
+      message:
+        $ref: '#/components/messages/SenzorPodatakMessage'
+      bindings:
+        mqtt:
+          qos: 0
+          retain: false
+
+  topic/IznadGranice/VlaznostVazduha:
+    description: Objavljuje se ako je vlažnost vazduha iznad granice.
+    publish:
+      summary: Notifikacija da je vlažnost iznad granice.
+      operationId: publishIznadGraniceVlaznost
+      message:
+        $ref: '#/components/messages/SenzorPodatakMessage'
+      bindings:
+        mqtt:
+          qos: 0
+          retain: false
+
+  topic/IznadGranice/Pm2_5:
+    description: Objavljuje se ako je PM2.5 iznad granice.
+    publish:
+      summary: Notifikacija da je PM2.5 iznad granice.
+      operationId: publishIznadGranicePm2_5
+      message:
+        $ref: '#/components/messages/SenzorPodatakMessage'
+      bindings:
+        mqtt:
+          qos: 0
+          retain: false
+
+  topic/IznadGranice/Pm10:
+    description: Objavljuje se ako je PM10 iznad granice.
+    publish:
+      summary: Notifikacija da je PM10 iznad granice.
+      operationId: publishIznadGranicePm10
+      message:
+        $ref: '#/components/messages/SenzorPodatakMessage'
+      bindings:
+        mqtt:
+          qos: 0
+          retain: false
+
+components:
+  messages:
+    SenzorPodatakMessage:
+      name: SenzorPodatak
+      title: SenzorPodatak
+      summary: Struktura senzorskog podatka koji se razmenjuje između servisa.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SenzorPodatak'
+      examples:
+        - payload:
+            Id: 42
+            Vreme: "2025-10-15T14:25:00Z"
+            Temperatura: 31.4
+            Vlaznost: 75.0
+            Pm2_5: 20.1
+            Pm10: 30.5
+
+  schemas:
+    SenzorPodatak:
+      type: object
+      required:
+        - Id
+        - Vreme
+        - Temperatura
+        - Vlaznost
+        - Pm2_5
+        - Pm10
+      properties:
+        Id:
+          type: integer
+          format: int32
+          description: ID podatka u bazi.
+          example: 42
+        Vreme:
+          type: string
+          format: date-time
+          description: ISO8601 vreme merenja.
+          example: "2025-10-15T14:25:00Z"
+        Temperatura:
+          type: number
+          format: float
+          description: Temperatura u stepenima Celzijusa.
+          example: 31.4
+        Vlaznost:
+          type: number
+          format: float
+          description: Vlažnost vazduha u procentima.
+          example: 75.0
+        Pm2_5:
+          type: number
+          format: float
+          description: Koncentracija PM2.5 čestica.
+          example: 20.1
+        Pm10:
+          type: number
+          format: float
+          description: Koncentracija PM10 čestica.
+          example: 30.5
